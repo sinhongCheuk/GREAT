@@ -8,7 +8,7 @@
 #include "Basic.h"
 
 
-extern vector< vector<unsigned> > hash_table;   // 记录顶点在reservoir中的下标
+extern vector< vector<unsigned> > hash_table;   
 extern unsigned hash_table_size;
 
 void hash_table_initial();
