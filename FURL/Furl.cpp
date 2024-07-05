@@ -1,22 +1,4 @@
-/**
- * @file Furl.cpp
- *
- * @brief This file conatins a class for Furl, a triangle counting algorithm in a multigraph stream.
- *
- * @author Minsoo Jung (minsoojung@snu.ac.kr)
- * @author Yongsub Lim (yongsub@makinarocks.ai)
- * @author Sunmin Lee (smileeesun@snu.ac.kr)
- * @author U Kang (ukang@snu.ac.kr)
- *
- * @date 2019-01-27
- *
- * @details License: Copyright (c) 2018, Minsoo Jung, Yongsub Lim, Summin Lee, and U Kang
- * @details All rights reserved.
- * @details You may use this code for evaluation.
- * @details For commercial purposes, please contact the author.
- */
 
-///////       Header files        ///////
 #include "Furl.h"
 #include <cassert>
 #include <iostream>

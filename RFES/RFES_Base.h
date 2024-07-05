@@ -1,8 +1,5 @@
 /*
  * RFES_Base.h
- *
- *  Created on: Oct 27, 2021
- *      Author: bio
  */
 
 #ifndef RFES_BASE_H_

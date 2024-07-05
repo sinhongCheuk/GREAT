@@ -1,8 +1,5 @@
 /*
  * reservoir.h
- *
- *  Created on: Oct 26, 2021
- *      Author: bio
  */
 
 #ifndef RESERVOIR_H_

@@ -1,8 +1,6 @@
 /*
  * RFES_Improve.h
  *
- *  Created on: Oct 27, 2021
- *      Author: bio
  */
 
 #ifndef RFES_IMPROVE_H_

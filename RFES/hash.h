@@ -1,8 +1,6 @@
 /*
  * hash.h
  *
- *  Created on: Oct 26, 2021
- *      Author: bio
  */
 
 #ifndef HASH_H_

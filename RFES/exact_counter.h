@@ -1,8 +1,8 @@
 /*
  * exact_counter.h
  *
- *  Created on: Nov 1, 2021
- *      Author: bio
+ *  
+ *     
  */
 
 #ifndef EXACT_COUNTER_H_

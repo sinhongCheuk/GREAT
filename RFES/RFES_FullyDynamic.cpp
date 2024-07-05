@@ -1,8 +1,6 @@
 /*
  * RFES_FullyDynamic.cpp
  *
- *  Created on: Oct 29, 2021
- *      Author: bio
  */
 #include "RFES_FullyDynamic.h"
 

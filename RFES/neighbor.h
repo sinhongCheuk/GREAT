@@ -1,8 +1,6 @@
 /*
  * neighbor.h
  *
- *  Created on: Oct 26, 2021
- *      Author: bio
  */
 
 #ifndef NEIGHBOR_H_

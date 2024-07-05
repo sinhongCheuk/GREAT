@@ -1,8 +1,6 @@
 /*
  * RFES_Improve.cpp
  *
- *  Created on: Oct 27, 2021
- *      Author: bio
  */
 
 #include "RFES_Improve.h"

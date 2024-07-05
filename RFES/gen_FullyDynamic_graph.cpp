@@ -1,8 +1,6 @@
 /*
  * gen_FullyDynamic_graph.cpp
  *
- *  Created on: Oct 29, 2021
- *      Author: bio
  */
 
 #include "gen_FullyDynamic_graph.h"
