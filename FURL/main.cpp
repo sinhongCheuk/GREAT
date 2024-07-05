@@ -75,7 +75,6 @@ int main(int argc, char** argv) {
         // mode:0 means counting without duplicated edges, 1 means counting with duplicated edges
         // extension:1 means output local triangle
 
-        // 加入delta和J是FURL的升级版，但不是无偏的
         //The main idea of FURLB (Algorithm 3) is to build an ensemble estimator efficiently by combining the current estimation with estimations at earlier timesteps through a weighted average scheme.
         //The procedure of FURLB is very similar to that of FURL-0B, but its estimation is computed by a weighted average of estimations obtained at previous times
         //
@@ -120,15 +119,6 @@ int main(int argc, char** argv) {
     unsigned long long d = dist2(generator);
 
     int sID,tID;
-    
-    double total_triangle = 0;
-    double total_elpased_time = 0;
-    double total_lape = 0;
-    //double total_maintain_time = 0;
-    double total_sampling_time = 0;
-    double total_discoverd_trianges = 0;
-    double total_counting_time = 0;
-
     Furl counter(wgt, ext, bucket_size, delta, J);
 
     counter.reset();
@@ -139,7 +129,7 @@ int main(int argc, char** argv) {
     std::ifstream file(datafile);
     if (!file.is_open()) {
         std::cerr << "Error opening file: " << datafile << std::endl;
-        return 1; // 或者其他适当的错误处理
+        return 1; 
     }
 
     std::string line;
@@ -180,7 +170,7 @@ int main(int argc, char** argv) {
     // end algorithm
 
     vector<double> res = counter.get_counts();
-    std::string localfile = "/data1/zhuoxh/local-furl0.txt";
+    std::string localfile = "/data1/local-furl0.txt";
     
     // output local triangle estimation and caculate the error
     counter.outputLocal(res, localfile);

@@ -25,8 +25,8 @@ void UpdateCounters(pair<unsigned,unsigned> edge)
 
 double computeLAPE() {
 
-    std::string algorithmOutputFile = "/data1/zhuoxh/local-RFES-I.txt";
-    std::string groundTruthFile = "/data1/zhuoxh/local-youtube-u-growth.txt";
+    std::string algorithmOutputFile = "/data1/local-RFES-I.txt";
+    std::string groundTruthFile = "/data1/local-youtube-u-growth.txt";
 
     std::ifstream groundTruthStream(groundTruthFile);
     std::ifstream algorithmOutputStream(algorithmOutputFile);

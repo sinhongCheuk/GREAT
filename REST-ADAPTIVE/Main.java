@@ -8,7 +8,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         
-        String inputGraphFile = "/data1/zhuoxh/timestamp/sorted_deduplicated_youtube-u-growth.txt";    // graph file path
+        String inputGraphFile = "/data1/timestamp/sorted_deduplicated_youtube-u-growth.txt";    // graph file path
         int reservoir_size = 100000;                                          
         
         double z = Double.parseDouble(args[0]);                               // for adaptive-alpha

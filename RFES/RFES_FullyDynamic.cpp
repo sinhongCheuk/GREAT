@@ -97,10 +97,10 @@ void RFES_FullyDynamic(char * input_graph_filename)
 
 	unsigned totalLength = 0;
     for (const auto& neighbors : neighbor) {
-        totalLength += neighbor.size(); // 添加当前vector的长度
+        totalLength += neighbor.size(); 
     }
 
-    // 输出结果
+   
     std::cout << "Total lengths of neighbor vector: " << totalLength << std::endl;
 
 	free(p_reservoir);

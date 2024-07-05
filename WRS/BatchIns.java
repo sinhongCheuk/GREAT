@@ -104,8 +104,8 @@ public class BatchIns {
      */ 
     public static double computeLAPE() {
         
-        String algorithmOutputFile = "/data1/zhuoxh/local-wrs.txt";
-        String groundTruthFile = "/data1/zhuoxh/local-youtube-u-growth.txt";
+        String algorithmOutputFile = "/data1/local-wrs.txt";
+        String groundTruthFile = "/data1/local-youtube-u-growth.txt";
 
         double averageLAPE = 0;
 
