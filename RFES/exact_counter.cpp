@@ -1,8 +1,5 @@
 /*
  * exact_counter.cpp
- *
- *  Created on: Nov 1, 2021
- *      Author: bio
  */
 #include "exact_counter.h"
 
