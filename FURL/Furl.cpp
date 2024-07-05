@@ -289,8 +289,8 @@ void Furl::outputLocal(const std::vector<double>& res, const std::string& filena
  * @brief Caculate the local triangle estimation error and print it
  */
 double Furl::computeLAPE() {
-    std::string algorithmOutputFile = "/data1/zhuoxh/local-furl0.txt";        // local triangle estimation file path
-    std::string groundTruthFile = "/data1/zhuoxh/local-youtube-u-growth.txt"; // local triangle groundtruth file path
+    std::string algorithmOutputFile = "/data1/local-furl0.txt";        // local triangle estimation file path
+    std::string groundTruthFile = "/data1/local-youtube-u-growth.txt"; // local triangle groundtruth file path
 
     std::ifstream groundTruthStream(groundTruthFile);
     std::ifstream algorithmOutputStream(algorithmOutputFile);
