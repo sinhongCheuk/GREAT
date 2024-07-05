@@ -249,7 +249,7 @@ public class WRSIns {
      * output local triangle estimation to file
      */ 
     public void output() throws IOException {
-        String fileName = "/data1/zhuoxh/local-wrs.txt";        // local triangle estimation file path
+        String fileName = "/data1/local-wrs.txt";        // local triangle estimation file path
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
         for (int i = 0; i <= maxID; i++) {
