@@ -129,7 +129,7 @@ public class Estimator {
      * output local triangle estimation to file
      */    
     public void output() throws IOException {
-        String fileName = "/data1/zhuoxh/local-mascot.txt";                    // local triangle estimation file path
+        String fileName = "/data1/local-mascot.txt";                    // local triangle estimation file path
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
         for (int i = 0; i <= 3223589; i++) {
@@ -146,8 +146,8 @@ public class Estimator {
      * caculate local triangle estimation error and print it
      */  
     public void computeLAPE() {
-        String algorithmOutputFile = "/data1/zhuoxh/local-mascot.txt";        // local triangle estimation file path
-        String groundTruthFile = "/data1/zhuoxh/local-youtube-u-growth.txt";  // local triangle groundtruth file path
+        String algorithmOutputFile = "/data1/local-mascot.txt";        // local triangle estimation file path
+        String groundTruthFile = "/data1/local-youtube-u-growth.txt";  // local triangle groundtruth file path
 
         try (
                 BufferedReader groundTruthReader = new BufferedReader(new FileReader(groundTruthFile));
