@@ -8,7 +8,7 @@
 
 void RFES_Base(char * input_graph_filename)
 {
-    // 水库大小、邻居向量、local_cnt[]数组初始化
+   
 	p_reservoir=(pair<unsigned,unsigned> *)malloc(sizeof(pair<unsigned,unsigned>)*M);
 	neighbor.resize(2*M);
 	localN=(unsigned *)malloc(sizeof(unsigned)*M);
@@ -21,9 +21,9 @@ void RFES_Base(char * input_graph_filename)
 		neighbor[i+M].clear();
 	}
 	cur_popBack_pos=0;
-	cur_graph_size=0;   // 流入的边数
+	cur_graph_size=0;  
 
-    // hash_table记录了水库中每个顶点的邻居
+  
 	pair<int,int> edge;
 	unsigned u,v,w;
 	hash_table_initial();
