@@ -24,9 +24,9 @@
 
 using namespace std;
 
-extern pair<unsigned,unsigned> *p_reservoir;    // 水库中每个元素都是一条边
+extern pair<unsigned,unsigned> *p_reservoir;
 extern unsigned M;
-extern vector< vector <unsigned> > neighbor;    // 它的大小一定是水库大小的两倍。这是为了能够记录在水库的每条边的两个顶点的邻居
+extern vector< vector <unsigned> > neighbor;    
 extern unsigned globalN;
 extern unsigned * localN;
 extern unsigned cur_graph_size;
