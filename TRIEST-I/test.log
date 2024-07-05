@@ -1,0 +1,9 @@
+triest-i terminated ...
+Estimated number of global triangles: 12224170.129942
+budget = 1000000
+writing node: 0
+vertex num: 3223590
+Average Local Absolute Percentage Error (LAPE): 5.833664
+elpased_time:14.907s
+triangles detection:2713543
+global triangles estimation:12224170.129942
