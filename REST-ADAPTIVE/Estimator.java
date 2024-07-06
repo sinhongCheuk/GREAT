@@ -54,7 +54,7 @@ public class Estimator {
     private int discoverd_triangles_per_round = 0;          // for caculating average interval
 
     public Estimator(int sizeOfReservoir, double z) {
-        this.reservoir = new int[2][sizeOfReservoir + 1];
+        this.reservoir = new int[2][sizeOfReservoir + 1];   // we have special uses of index '0'
         this.k = sizeOfReservoir;
         this.p_and_round = new double[2][sizeOfReservoir + 1];
         this.sample_time = new double[sizeOfReservoir + 1];
@@ -160,7 +160,7 @@ public class Estimator {
                     System.out.println("round "+ cur_round + " increment: " + String.format("%4f", + increment));
                     System.out.println("round "+ cur_round + " triangle detection: " + String.format("%4d", + discoverd_triangles_per_round));
                     aver_interval =  interval  / discoverd_triangles_per_round;
-                    System.out.println("第"+ cur_round + "轮三角形成的平均间隔为: " + aver_interval);
+                    System.out.println("round "+ cur_round + " aver_interval: " + aver_interval);
 
                     System.out.println("round "+ cur_round + " average triangle interval: " + aver_interval);
                     System.out.println("round "+ cur_round + " z value: " + String.format("%4f", + z));
@@ -317,8 +317,8 @@ public class Estimator {
             int neighbor = entry.getIntKey();
             int indexDst = dstMap.get(neighbor);
 
-            // 尝试从dstMap中获取与当前邻居对应的信息
-            if (indexDst != 0) {
+            
+            if (indexDst != 0) {    // we have special uses of index '0'
                 discoverd_triangles++;
                 discoverd_triangles_per_round++;
 

@@ -58,7 +58,7 @@ public class Main {
                 System.out.println("Number of edges processed: " + lineNum +", estimated number of global triangles: " + String.format("%4f", estimator.getGlobalTriangle()));
             }
         }
-        System.out.println("triest-i-alpha terminated ...");
+        System.out.println("REST-ADAPTIVE terminated ...");
         System.out.println("Estimated number of global triangles: " + String.format("%4f", estimator.getGlobalTriangle()));
 
         br.close();

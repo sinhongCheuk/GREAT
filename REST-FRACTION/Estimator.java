@@ -14,6 +14,7 @@ public class Estimator {
     
     private Int2DoubleOpenHashMap nodeToCount = new Int2DoubleOpenHashMap(); // local triangle counts
     private double globalTriangle = 0; // global triangles
+    private int maxID = -1;
 
     private double p;                                           // sampling probability
     private int k; // size of the reservoir
@@ -76,6 +77,13 @@ public class Estimator {
         }
 
         t++;
+        if (src > maxID) {
+            maxID = src;
+        }
+        
+        if (dst > maxID) {
+            maxID = dst;
+        }
 
         
         count(src, dst); //count triangles involved
@@ -304,10 +312,10 @@ public class Estimator {
      * output local triangle estimation to file
      */ 
     public void output() throws IOException {
-        String fileName = "/data1/local-triest-i-alpha.txt";      // local triangle estimation file path
+        String fileName = "/data1/local-REST-FRACTION.txt";      // local triangle estimation file path
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
-        for (int i = 0; i <= 3223589; i++) {
+        for (int i = 0; i <= maxID; i++) {
             if (i % 50000000 == 0) {
                 System.out.println("writing node: " + i);
             }
@@ -321,7 +329,7 @@ public class Estimator {
      * caculate local triangle estimation error
      */ 
     public void computeLAPE() {
-        String algorithmOutputFile = "/data1/local-triest-i-alpha.txt";    // local triangle estimation file path
+        String algorithmOutputFile = "/data1/local-REST-FRACTION.txt";    // local triangle estimation file path
         String groundTruthFile = "/data1/local-youtube-u-growth.txt";      // local triangle groundtruth file path
   
         try (

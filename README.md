@@ -28,10 +28,11 @@ javac -cp .:/home/username/fastutil-7.2.0.jar *.java
 After compilation, you can run the provided `.sh` file or use the command:
 
 ```bash
-java -cp .:<your_path_to_fastutil.jar> Main
+java -cp .:<your_path_to_fastutil.jar> Main 0.5 100000
 ```
 
 #### Example:
 ```bash
-java -cp .:/home/username/fastutil-7.2.0.jar Main
+java -cp .:/home/username/fastutil-7.2.0.jar Main 0.5 100000
 ```
+When running this code, please remember to fill in the graph file path in the code.
