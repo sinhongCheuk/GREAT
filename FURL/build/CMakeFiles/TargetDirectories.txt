@@ -1,3 +1,0 @@
-/home/zhuoxh/furl/build/CMakeFiles/myFurl.dir
-/home/zhuoxh/furl/build/CMakeFiles/edit_cache.dir
-/home/zhuoxh/furl/build/CMakeFiles/rebuild_cache.dir
