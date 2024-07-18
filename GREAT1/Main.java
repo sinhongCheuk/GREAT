@@ -7,14 +7,14 @@ import java.util.Random;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        String inputGraphFile = "/data1/timestamp/sorted_deduplicated_youtube-u-growth.txt";    // graph file path
+        String inputGraphFile = "/data1/graphFile";        // graph file path
         
-        int reservoir_size = Integer.parseInt(args[1]);
-        double alpha = Double.parseDouble(args[0]);
+        int reservoir_size = Integer.parseInt(args[1]);    // budget
+        double alpha = Double.parseDouble(args[0]);        // alpha  
         
         long discoverd_triangles = 0;
         
-        Estimator estimator = new Estimator(reservoir_size, alpha);
+        Estimator estimator = new Estimator(reservoir_size, alpha);    // triangle counter
         System.out.println("alpha = " + alpha);
         System.out.println("budget = " + reservoir_size);
         double time0 = System.currentTimeMillis();
@@ -22,10 +22,10 @@ public class Main {
         double time1 = System.currentTimeMillis();
         double elpased_time = (time1 - time0) / 1000.0;
             
-        estimator.output();
+        estimator.output();                                // output local triangle file and calculate LAPE
         estimator.computeLAPE();
                
-        discoverd_triangles = estimator.getDiscoverd_triangles();
+        discoverd_triangles = estimator.getDiscoverd_triangles();  // get the number of detected triangles
 
         System.out.println("elpased_time:" + elpased_time + "s");
             
@@ -46,13 +46,13 @@ public class Main {
 
             int[] edge = parseEdge(line, delim);
 
-            estimator.processEdge(edge[0], edge[1]);
+            estimator.processEdge(edge[0], edge[1]);        // GREAT1 processing streaming edge
 
             if ((++lineNum) % 100000000 == 0) {
                 System.out.println("Number of edges processed: " + lineNum +", estimated number of global triangles: " + String.format("%4f", estimator.getGlobalTriangle()));
             }
         }
-        System.out.println("REST-power terminated ...");
+        System.out.println("GREAT1 terminated ...");
         System.out.println("Estimated number of global triangles: " + String.format("%4f", estimator.getGlobalTriangle()));
 
         br.close();

@@ -13,11 +13,12 @@ public class Estimator {
     private Int2ObjectOpenHashMap<Int2IntOpenHashMap> neighbors = new Int2ObjectOpenHashMap<>();  // graph composed of the sampled edges
     
     private Int2DoubleOpenHashMap nodeToCount = new Int2DoubleOpenHashMap(); // local triangle counts
-    private double globalTriangle = 0; // global triangles
+    private double globalTriangle = 0;                          // global triangles
     private int maxID = -1;
 
     private double p;                                           // sampling probability
-    private int k; // size of the reservoir
+    private int k;                                              // size of the reservoir
+    private int[][] reservoir;              
     private double t = 0;                                       // number of streaming edges processed so far
 
     private int next_slot_index = 1;                            // for top-k edges in reservoir sampling
@@ -29,14 +30,14 @@ public class Estimator {
 
     private List<Integer> numbers = new ArrayList<>();          // for generating the random index 
 
-    private double cur_round = 1;                               // current round of sampling scheme
-    private double alpha;                                       // edge discard rate
-    private double survive_rate;                                // survive rate of an edge, 1-alpha
-    private double[] survive_rate_array = new double[10000];    // cache of the (1-alpha)^r, accelerate the calculation of the probability
+    private double cur_round = 1;                               // current computation round of sampling scheme
+    private double alpha;                                       // discard probability of an edge
+    private double survive_rate;                                // survive probability of an edge, 1-alpha
+    private double[] survive_rate_array = new double[10000];    // cache of the (1-alpha)^(2r - r_uw - r_vw)
 
     
-    private int[][] reservoir;              
-    private double[][] p_and_round;                             // for p_uv and r_uv
+    
+    private double[][] p_and_round;                             // store p_uv and r_uv of each corresponding edge in reservoir
     private final Random random = new Random();
 
     private int N;                                              // number of deleted edges
@@ -77,6 +78,8 @@ public class Estimator {
         }
 
         t++;
+        
+        // get maxID for output local triangle file
         if (src > maxID) {
             maxID = src;
         }
@@ -172,7 +175,8 @@ public class Estimator {
     }
 
     /**
-     * sample an edge to the subgraph
+     * sample an edge to the subgraph, and store the coresponding reservoir index
+     * then we can get the sampling probability and sampling round throught the index
      * @param src source node of the given edge
      * @param dst destination node of the given edge
      */
@@ -238,16 +242,18 @@ public class Estimator {
             int indexDst = dstMap.get(neighbor);
 
             
-            if (indexDst != 0) {  // thats the special use of index '0'
+            if (indexDst != 0) {  // thats the special use of index '0', we find a common neighborhood
                 discoverd_triangles++;
 
                 if (t < k + 1) {
-
+                    
                     countSum += 1;
                     nodeToCount.addTo(neighbor, 1); // update the local triangle count of the common neighbor
                 } else {
                     // caculate the probability
                     int indexSrc = entry.getIntValue();
+                    
+                    // weight = p_uw * p_vw * (1 - alpha) ^ (2r - r_vw - r_uw)
                     double weight = p_and_round[0][indexSrc] * p_and_round[0][indexDst] * survive_rate_array[(int) (2 * cur_round - p_and_round[1][indexSrc] - p_and_round[1][indexDst])];
                     double count = 1 / weight;
                     countSum += count;
@@ -261,7 +267,7 @@ public class Estimator {
         if(countSum > 0) {
             nodeToCount.addTo(src, countSum); // update the local triangle count of the source node
             nodeToCount.addTo(dst, countSum); // update the local triangle count of the destination node
-            globalTriangle += countSum; // update the global triangle count
+            globalTriangle += countSum;       // update the global triangle count
         }
     }
 
@@ -271,7 +277,6 @@ public class Estimator {
     private void randomIndex() {
 
         if (alpha <= 0.5) {
-            // Theoretically, when alpha < 1 - 1/e, if-body will outperform else-body in the perspective of efficiency
             // generate N different random number
             IntOpenHashSet indicesToDelete = new IntOpenHashSet();
             while (indicesToDelete.size() < N) {
@@ -312,7 +317,7 @@ public class Estimator {
      * output local triangle estimation to file
      */ 
     public void output() throws IOException {
-        String fileName = "/data1/local-REST-FRACTION.txt";      // local triangle estimation file path
+        String fileName = "/data1/local-GREAT2.txt";      // local triangle estimation file path
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
         for (int i = 0; i <= maxID; i++) {
@@ -329,8 +334,8 @@ public class Estimator {
      * caculate local triangle estimation error
      */ 
     public void computeLAPE() {
-        String algorithmOutputFile = "/data1/local-REST-FRACTION.txt";    // local triangle estimation file path
-        String groundTruthFile = "/data1/local-youtube-u-growth.txt";      // local triangle groundtruth file path
+        String algorithmOutputFile = "/data1/local-GREAT2.txt";    // local triangle estimation file path
+        String groundTruthFile = "/data1/groundTruthFile";      // local triangle groundtruth file path
   
         try (
                 BufferedReader groundTruthReader = new BufferedReader(new FileReader(groundTruthFile));
@@ -342,13 +347,15 @@ public class Estimator {
             double totalLAPE = 0;
             int vertexCount = 0;
 
+
+            // calculate LAPE
             while ((groundTruthLine = groundTruthReader.readLine()) != null &&
                     (algorithmOutputLine = algorithmOutputReader.readLine()) != null) {
                 String[] groundTruthParts = groundTruthLine.split("\\s+");
                 String[] algorithmOutputParts = algorithmOutputLine.split("\\s+");
 
                
-                double groundTruthValue = Double.parseDouble(groundTruthParts[1]); // Converted to double
+                double groundTruthValue = Double.parseDouble(groundTruthParts[1]); 
                 double algorithmOutputValue = Double.parseDouble(algorithmOutputParts[1]);
 
                 double lape = Math.abs(algorithmOutputValue - groundTruthValue) / (groundTruthValue + 1);

@@ -13,19 +13,21 @@ public class Estimator {
     
     private Int2DoubleOpenHashMap nodeToCount = new Int2DoubleOpenHashMap(); // local triangle counts
 
-    public IntOpenHashSet vertices = new IntOpenHashSet();    // node set
-    private int maxID = -1;            // for LAPE
+    private int maxID = -1;            
 
-    private double globalTriangle = 0; // global triangles
-    private double pre_global = 0;     // for caculating average interval
+    private double globalTriangle = 0;                      // global triangles
+    private double pre_global = 0;                          // for calculate triangle estimatation increment per round
 
 
     private int k;                                          // size of the reservoir
+    private int[][] reservoir;
     private double t = 0;                                   // number of streaming edges processed so far
     private double interval = 0;                            // total interval of new triangles
-    private double aver_interval = 0;
+    private double aver_interval = 0;                       // average interval of new triangles in a round
     private double z;                                       // z = (1 - x)^y
-    private double p = 0;                                   // sampling probability     
+    private int round_bound;                                // when computation round less than round bound, we use the init_alpha, not adaptive
+    private double init_alpha;                              // initial alpha for the top-(round_bound) round
+    private double p = 1;                                   // sampling probability     
   
     private int next_slot_index = 1;                        // for top-k edges in reservoir sampling
     private int store_index = 0;
@@ -36,13 +38,15 @@ public class Estimator {
 
     private List<Integer> numbers = new ArrayList<>();      // for generating the random index 
 
-    private double cur_round = 1;                           // current round of sampling scheme
-    private double alpha;                                   // edge discard rate
-    private double survive_rate;                            // survive rate of an edge, 1-alpha
-    private double[] survive_rate_array = new double[10000];     // cache of the (1-alpha)^r, accelerate the calculation of the probability
-
-
-    private int[][] reservoir;              
+    private double cur_round = 1;                           // current computation round of sampling scheme
+    private double alpha;                                   // discard probability of a reservoir edge
+    private double survive_rate;                            // survive probability of an edge, 1-alpha
+        
+    // cache of the (1-alpha)^r, accelerate the calculation of a triangle's probability    
+    private final int max_round = 10000;
+    private double[] survive_rate_array = new double[max_round];     
+    private double[][] survive_rate_cache = new double[max_round][max_round];
+             
     private double[][] p_and_round;                         // for p_uv and r_uv
     private double[] sample_time;
 
@@ -53,14 +57,21 @@ public class Estimator {
     private long discoverd_triangles = 0;                   
     private int discoverd_triangles_per_round = 0;          // for caculating average interval
 
-    public Estimator(int sizeOfReservoir, double z) {
-        this.reservoir = new int[2][sizeOfReservoir + 1];   // we have special uses of index '0'
+    public Estimator(int sizeOfReservoir, double z, int round_bound, double init_alpha) {
+        this.reservoir = new int[2][sizeOfReservoir + 1];   // we have special use of index '0'     
         this.k = sizeOfReservoir;
         this.p_and_round = new double[2][sizeOfReservoir + 1];
-        this.sample_time = new double[sizeOfReservoir + 1];
+        
         this.z = z;
+        this.round_bound = round_bound;
+        this.init_alpha = init_alpha;
+        
 
         survive_rate_array[0] = 1;
+
+        survive_rate_cache[0][0] = 1;
+        survive_rate_cache[1][1] = 1;
+
 
         for (int i = 1; i < k + 1; i++) {
             numbers.add(i);
@@ -77,6 +88,7 @@ public class Estimator {
 
         t++;
         
+        // get maxID for output local triangle file
         if (src > maxID) {
             maxID = src;
         }
@@ -88,7 +100,7 @@ public class Estimator {
 
         if (t == k) {
             
-            alpha = 0.1;
+            alpha = init_alpha;
             this.N = (int) (k * alpha);
 
             survive_rate = 1 - alpha;
@@ -106,13 +118,12 @@ public class Estimator {
             p_and_round[0][next_slot_index] = 1.0;
             p_and_round[1][next_slot_index] = 1.0;
 
-            sample_time[next_slot_index] = t;
 
             sample(src, dst, next_slot_index);
             next_slot_index++;
 
         } else {
-            // now the sampling probability turns to be k / t
+            // now the sampling probability turns to be p * (1 - alpha)
             if (empty_slot == 0) {
                 // reservoir is full now, we need to randomly discard N edges
                 
@@ -120,7 +131,7 @@ public class Estimator {
                 double increment = globalTriangle - pre_global;
                 pre_global = globalTriangle;
 
-                if (cur_round > 5) {
+                if (cur_round > round_bound) {
                     System.out.println("round "+ cur_round + " global triangle estimation: " + String.format("%4f", + globalTriangle));
                     System.out.println("round "+ cur_round + " triangle interval: " + String.format("%4f", + interval));
                     System.out.println("round "+ cur_round + " increment: " + String.format("%4f", + increment));
@@ -132,12 +143,12 @@ public class Estimator {
                         System.out.println("round "+ cur_round + " z value: " + String.format("%4f", + z));
 
                         alpha = generateAlphaByInterval(aver_interval);
-                        alpha = Math.max(0.1, alpha);
+                        alpha = Math.max(init_alpha, alpha);
                         
                     } else {
                         System.out.println("round "+ cur_round + " average triangle interval: Infinity");
                         //alpha = Math.max(0.1, alpha);
-                        alpha = 0.1;    
+                        alpha = init_alpha;    
                     }
                     
                     System.out.println("round "+ cur_round + " z value: " + String.format("%4f", + z));
@@ -145,6 +156,7 @@ public class Estimator {
                     System.out.println("round "+ cur_round + " alpha value: " + String.format("%4f", + alpha));
                     System.out.println();
 
+                    cur_round++;
                     interval = 0;
                     discoverd_triangles_per_round = 0;
 
@@ -152,7 +164,18 @@ public class Estimator {
 
                     survive_rate = 1 - alpha;
 
+                    // update the survive_rate_cache, then we can calculate a triangle's probability faster
                     survive_rate_array[(int)cur_round] = survive_rate;
+                    survive_rate_cache[(int)cur_round][(int)cur_round] = survive_rate;
+
+                    for (int i = 0; i < cur_round; i++) {
+                        survive_rate_cache[i][(int)cur_round] = survive_rate * survive_rate_cache[i][(int)cur_round - 1];
+                    }
+                    survive_rate_cache[(int)cur_round + 1][(int)cur_round] = 1;
+                    
+                    p = p * (1 - alpha);    // update sampling probability
+                    
+                    
                     System.out.println();
                 } else {
                     System.out.println("round "+ cur_round + " global triangle estimation: " + String.format("%4f", + globalTriangle));
@@ -167,6 +190,8 @@ public class Estimator {
                     System.out.println("round "+ cur_round + " alpha value: " + String.format("%4f", + alpha));
                     System.out.println();
 
+
+                    cur_round++;
                     interval = 0;
                     discoverd_triangles_per_round = 0;
                     alpha = 0.1;
@@ -175,12 +200,19 @@ public class Estimator {
 
                     survive_rate = 1 - alpha;
 
+                    // update the survive_rate_cache, then we can calculate a triangle's probability faster
                     survive_rate_array[(int)cur_round] = survive_rate;
+                    survive_rate_cache[(int)cur_round][(int)cur_round] = survive_rate;
+
+                    for (int i = 0; i < cur_round; i++) {
+                        survive_rate_cache[i][(int)cur_round] = survive_rate * survive_rate_cache[i][(int)cur_round - 1];
+                    }
+                    survive_rate_cache[(int)cur_round + 1][(int)cur_round] = 1;
+                    
+                    p = p * (1 - alpha);   // update sampling probability
                     System.out.println();
                 }
 
-
-                cur_round++;
 
                 
                 randomIndex();
@@ -197,7 +229,7 @@ public class Estimator {
                     }
 
                 } else {
-                    //obviously, when alpha > 0.5, save the remaining would be faster
+                    //when alpha > 0.5, save the remaining would be faster
                     Int2ObjectOpenHashMap<Int2IntOpenHashMap> temp_neighbors = new Int2ObjectOpenHashMap<>();
 
                     int remaining = k - N;
@@ -226,7 +258,6 @@ public class Estimator {
             // if there are still have some slots for coming edges, keep sampling
             if (empty_slot > 0) {
 
-                p = k/t;
                 double randomValue = random.nextDouble();
                 if (randomValue < p) {
                     // sample the coming edge
@@ -238,7 +269,6 @@ public class Estimator {
                     p_and_round[0][insertIndex] = p;
                     p_and_round[1][insertIndex] = cur_round;
 
-                    sample_time[insertIndex] = cur_round;
 
                     sample(src, dst, insertIndex);
 
@@ -252,7 +282,8 @@ public class Estimator {
 
     }
     /**
-     * sample an edge to the subgraph
+     * sample an edge to the subgraph, and store the reservoir index of this edge
+     * then we can get sampling probability and sampling round of an edge
      * @param src source node of the given edge
      * @param dst destination node of the given edge
      */
@@ -318,7 +349,7 @@ public class Estimator {
             int indexDst = dstMap.get(neighbor);
 
             
-            if (indexDst != 0) {    // we have special uses of index '0'
+            if (indexDst != 0) {    // we have special uses of index '0', it means we find a common neighborhood
                 discoverd_triangles++;
                 discoverd_triangles_per_round++;
 
@@ -331,25 +362,28 @@ public class Estimator {
                     int indexSrc = entry.getIntValue();
 
                     
-                    // caculate the interval of triangle (src, dst, neighbor)
+                    // calculate the interval of triangle (src, dst, neighbor)
                     int srcSampleRound = (int)p_and_round[1][indexSrc];
                     int dstSampleRound = (int)p_and_round[1][indexDst];
                     interval += 2 * cur_round - srcSampleRound - dstSampleRound;
 
-                    double src_p = p_and_round[0][indexSrc];
-                    double dst_p = p_and_round[0][indexDst];
-                    for (int i = srcSampleRound; i < cur_round; i++) {
-                        src_p = src_p * survive_rate_array[i];
-
+                    // calculate a triangle's probability
+                    double src_p, dst_p;
+                    if (srcSampleRound == cur_round) {
+                        src_p = p_and_round[0][indexSrc];
+                    } else {
+                        src_p = p_and_round[0][indexSrc] * survive_rate_cache[srcSampleRound + 1][(int)cur_round];
                     }
 
-                    for (int i = dstSampleRound; i < cur_round; i++) {
-                        dst_p = dst_p * survive_rate_array[i];
+                    if (dstSampleRound == cur_round) {
+                        dst_p = p_and_round[0][indexDst];
+                    } else {
+                        dst_p = p_and_round[0][indexDst] * survive_rate_cache[dstSampleRound + 1][(int)cur_round];
                     }
 
-                    double weight = src_p * dst_p;
+                    double count = 1 / (src_p * dst_p);
 
-                    double count = 1 / weight;
+                    
                     countSum += count;
                     nodeToCount.addTo(neighbor, count); // update the local triangle count of the common neighbor
                 }
@@ -363,7 +397,6 @@ public class Estimator {
             nodeToCount.addTo(dst, countSum); // update the local triangle count of the destination node
             globalTriangle += countSum; // update the global triangle count
             
-            
         }  
     }
 
@@ -373,7 +406,7 @@ public class Estimator {
     private void randomIndex() {
 
         if (alpha <= 0.5) {
-            // Theoretically, when alpha < 1 - 1/e, if-body will outperform else-body in the perspective of efficiency
+            
             // generate N different random number
             IntOpenHashSet indicesToDelete = new IntOpenHashSet();
             while (indicesToDelete.size() < N) {
@@ -426,7 +459,7 @@ public class Estimator {
      * output local triangle estimation to file
      */ 
     public void output() throws IOException {
-        String fileName = "/data1/localz.txt";        // local triangle estimation file path
+        String fileName = "/data1/local-GREAT+1.txt";        // local triangle estimation file path
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
         for (int i = 0; i <= maxID; i++) {
@@ -443,8 +476,8 @@ public class Estimator {
      * caculate local triangle estimation error
      */ 
     public double computeLAPE() {
-        String algorithmOutputFile = "/data1/localz.txt";      // local triangle estimation file path
-        String groundTruthFile = "/data1/local-youtube-u-growth.txt";     // local triangle groundtruth file path
+        String algorithmOutputFile = "/data1/local-GREAT+1.txt";      // local triangle estimation file path
+        String groundTruthFile = "/data1/groundTruthFile.txt";     // local triangle groundtruth file path
   
         double averageLAPE = 0;
         try (
@@ -457,13 +490,14 @@ public class Estimator {
             double totalLAPE = 0;
             int vertexCount = 0;
 
+            // calculate LAPE
             while ((groundTruthLine = groundTruthReader.readLine()) != null &&
                     (algorithmOutputLine = algorithmOutputReader.readLine()) != null) {
                 String[] groundTruthParts = groundTruthLine.split("\\s+");
                 String[] algorithmOutputParts = algorithmOutputLine.split("\\s+");
 
                 
-                double groundTruthValue = Double.parseDouble(groundTruthParts[1]); // Converted to double
+                double groundTruthValue = Double.parseDouble(groundTruthParts[1]); 
                 double algorithmOutputValue = Double.parseDouble(algorithmOutputParts[1]);
 
                 double lape = Math.abs(algorithmOutputValue - groundTruthValue) / (groundTruthValue + 1);

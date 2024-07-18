@@ -7,36 +7,28 @@ import java.util.Random;
 public class Main {
 
     public static void main(String[] args) throws IOException {
+        String inputGraphFile = "/data1/graphFile";        // graph file path
         
-        String inputGraphFile = "/data1/timestamp/sorted_deduplicated_youtube-u-growth.txt";    // graph file path
-        int reservoir_size = Integer.parseInt(args[1]);                                      
+        int reservoir_size = Integer.parseInt(args[1]);    // budget
+        double alpha = Double.parseDouble(args[0]);        // alpha  
         
-        double z = Double.parseDouble(args[0]);                               // for adaptive-alpha
         
-        double lape = 0;
-        
-
-        long discoverd_triangles = 0;
-        
-        Estimator estimator = new Estimator(reservoir_size, z);
+        Estimator estimator = new Estimator(reservoir_size, alpha);    // triangle counter
+        System.out.println("alpha = " + alpha);
+        System.out.println("budget = " + reservoir_size);
         double time0 = System.currentTimeMillis();
         run(estimator, inputGraphFile, "\t");
         double time1 = System.currentTimeMillis();
         double elpased_time = (time1 - time0) / 1000.0;
             
-        estimator.output();
-        lape = estimator.computeLAPE();
-      
-        discoverd_triangles = estimator.getDiscoverd_triangles();
-
+        estimator.output();                                // output local triangle file and calculate LAPE
+        estimator.computeLAPE();
+        
         System.out.println("elpased_time:" + elpased_time + "s");
-       
-        System.out.println("triangle detection:" + discoverd_triangles);
-        System.out.println("global triangle estimation:" + String.format("%4f", estimator.getGlobalTriangle()));
             
-        System.out.println("alpha = " + estimator.getAlpha());
-        System.out.println();
-
+        System.out.println("triangle detection:" + estimator.getDiscoverd_triangles());    
+        System.out.println("global triangle estimation:" + String.format("%4f", estimator.getGlobalTriangle()));    
+          
 
     }
 
@@ -52,17 +44,18 @@ public class Main {
 
             int[] edge = parseEdge(line, delim);
 
-            estimator.processEdge(edge[0], edge[1]);
+            estimator.processEdge(edge[0], edge[1]);       // GREAT2 processing streaming edge
 
             if ((++lineNum) % 100000000 == 0) {
                 System.out.println("Number of edges processed: " + lineNum +", estimated number of global triangles: " + String.format("%4f", estimator.getGlobalTriangle()));
             }
         }
-        System.out.println("REST-ADAPTIVE terminated ...");
+        System.out.println("GREAT2 terminated ...");
         System.out.println("Estimated number of global triangles: " + String.format("%4f", estimator.getGlobalTriangle()));
 
         br.close();
     }
+    
 
     private static int[] parseEdge(String line, String delim) {
         String[] tokens = line.split(delim);
@@ -71,5 +64,4 @@ public class Main {
 
         return new int[]{src, dst};
     }
-
 }
